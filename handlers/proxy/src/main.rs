@@ -76,7 +76,6 @@ use lambda_http::RequestExt;
 use lambda_http::{lambda_runtime::Error, service_fn, tracing, Request, Response};
 use reqwest::{Client, ClientBuilder, Response as ReqwestResponse};
 use std::env;
-use tracing::info;
 
 #[async_trait]
 pub trait HttpClient: Send + Sync {
@@ -178,7 +177,6 @@ async fn handle_response(
     }
 
     let body = response.text().await.unwrap_or_default();
-    info!("Received response body: {:?}", &body);
     builder
         .body(body)
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
@@ -201,7 +199,6 @@ async fn function_handler(
     event: Request,
     client: &dyn HttpClient,
 ) -> Result<Response<String>, Error> {
-    info!("Received request: {:?}", event);
 
     let expected_api_key = env::var("API_KEY").unwrap_or_default();
     let received_api_key = event
@@ -303,9 +300,6 @@ async fn function_handler(
         headers.insert(header_name, header_value);
     }
 
-    info!("Forwarded request url: {:?}", &url);
-    info!("Forwarded request headers: {:?}", &headers);
-
     // Make the request to the target host
     let response_result = match event.method().as_str() {
         "GET" => client.get(&url, headers).await,
@@ -319,8 +313,6 @@ async fn function_handler(
                 .expect("Failed to render response"))
         }
     };
-
-    info!("Forwarded response: {:?}", &response_result);
 
     match response_result {
         Ok(response) => handle_response(response).await,
