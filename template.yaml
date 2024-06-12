@@ -9,7 +9,7 @@ Globals:
     Timeout: 600
     Tracing: Active
     Architectures: ["arm64"]
-    Runtime: provided.al2
+    Runtime: provided.al2023
     Handler: bootstrap.main
     CodeUri: .
 
