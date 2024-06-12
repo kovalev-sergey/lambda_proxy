@@ -69,6 +69,7 @@
 //!    - Ensure that the API Gateway passes the request details, including headers and request context, to the Lambda function.
 
 use async_trait::async_trait;
+use lambda_http::http::Method;
 use lambda_http::http::{
     response::Builder as ResponseBuilder, HeaderName, HeaderValue, StatusCode,
 };
@@ -76,6 +77,7 @@ use lambda_http::RequestExt;
 use lambda_http::{lambda_runtime::Error, service_fn, tracing, Request, Response};
 use reqwest::{Client, ClientBuilder, Response as ReqwestResponse};
 use std::env;
+use tracing::info;
 
 #[async_trait]
 pub trait HttpClient: Send + Sync {
@@ -177,6 +179,7 @@ async fn handle_response(
     }
 
     let body = response.text().await.unwrap_or_default();
+    info!("Output response body:\n{:?}\nHeaders:\n{:?}", &body, &builder.headers_ref());
     builder
         .body(body)
         .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
@@ -199,6 +202,7 @@ async fn function_handler(
     event: Request,
     client: &dyn HttpClient,
 ) -> Result<Response<String>, Error> {
+    info!("Input request: {:?}", event);
 
     let expected_api_key = env::var("API_KEY").unwrap_or_default();
     let received_api_key = event
@@ -300,12 +304,14 @@ async fn function_handler(
         headers.insert(header_name, header_value);
     }
 
+    info!("Output request body:\n{:?}\nHeaders:\n{:?}", &event.body(), &headers);
+
     // Make the request to the target host
-    let response_result = match event.method().as_str() {
-        "GET" => client.get(&url, headers).await,
-        "POST" => client.post(&url, headers, event.body().to_vec()).await,
-        "PUT" => client.put(&url, headers, event.body().to_vec()).await,
-        "DELETE" => client.delete(&url, headers, event.body().to_vec()).await,
+    let response_result = match *event.method() {
+        Method::GET => client.get(&url, headers).await,
+        Method::POST => client.post(&url, headers, event.body().to_vec()).await,
+        Method::PUT => client.put(&url, headers, event.body().to_vec()).await,
+        Method::DELETE => client.delete(&url, headers, event.body().to_vec()).await,
         _ => {
             return Ok(Response::builder()
                 .status(405)

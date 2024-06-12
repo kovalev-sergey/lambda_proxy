@@ -27,6 +27,10 @@ Deploy
 sam deploy --guided
 ```
 
+### Note on Deployment
+
+Sometimes after deployment, the endpoint may return `{"Message":"Forbidden"}`. This is a known AWS issue. To resolve it, go to the AWS Management Console, navigate to the Lambda function's configuration, find the Function URL settings, and resave the configuration by clicking "Edit" and then "Save".
+
 ### Contributing
 
 Contributions are welcome! Please feel free to submit a pull request or open an issue to discuss changes.
@@ -34,5 +38,3 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 ### License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-

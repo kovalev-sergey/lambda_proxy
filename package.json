@@ -1,23 +1,18 @@
 {
   "name": "lambda_proxy",
   "version": "1.0.0",
-  "description": "",
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
     "test": "cargo test -- --test-threads=1",
     "build release": "cargo build --release",
     "check": "cargo clippy --locked --all-targets -- -D clippy::all",
     "lint": "cargo fmt -- --check",
     "sam:validate": "sam validate",
-    "sam:build": "cargo build --release --target aarch64-unknown-linux-musl && SAM_CLI_TELEMETRY=0 sam build && SAM_CLI_TELEMETRY=0 sam deploy"
+    "sam:build": "cargo build --release --target aarch64-unknown-linux-musl && SAM_CLI_TELEMETRY=0 sam build && SAM_CLI_TELEMETRY=0 sam deploy --no-confirm-changeset"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kovalev-sergey/lambda_proxy.git"
   },
-  "author": "github.com/kovalev-sergey",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kovalev-sergey/lambda_proxy/issues"

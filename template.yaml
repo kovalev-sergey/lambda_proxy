@@ -14,55 +14,32 @@ Globals:
     CodeUri: .
 
 Parameters:
-  StageName:
-    Type: String
-    Default: prod
-    Description: Name of the APIG Stage
   ProxyApiKey:
     Type: String
     Description: The API key to authorize incoming requests
   TargetHost:
     Type: String
     Default: ""
-    Description: The default target host to forward requests to if the `X-Target-Host` header is not provided.
-
+    Description: The default target host to forward requests to if the `X-Target-Host` header is not provided
 
 Resources:
   ProxyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Events:
-        GetEvent:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref HttpApi
       Environment:
         Variables:
           API_KEY: !Ref ProxyApiKey
           TARGET_HOST: !Ref TargetHost
     Metadata:
       BuildMethod: makefile
-  
-  HttpApi:
-    Type: AWS::Serverless::HttpApi
+    
+  ProxyFunctionUrl:
+    Type: AWS::Lambda::Url
     Properties:
-      StageName: !Ref StageName
-      CorsConfiguration:
-        AllowOrigins:
-          - '*'
-        AllowMethods:
-          - OPTIONS
-          - GET
-          - POST
-          - PUT
-          - DELETE
-        AllowHeaders:
-          - '*'
-        MaxAge: 3600
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt ProxyFunction.Arn
 
-  
 Outputs:
-  HttpApiUrl:
+  ProxyFunctionUrl:
     Description: URL of the proxy endpoint
-    Value:
-      Fn::Sub: 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/'
+    Value: !GetAtt ProxyFunctionUrl.FunctionUrl
